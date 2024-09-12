@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "serial-client"
+version = "0.1.0"
+description = ""
+authors = ["CrinitusFeles <crinitusfeles@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyserial = "^3.5"
+event = {git = "https://github.com/CrinitusFeles/Event.git"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
