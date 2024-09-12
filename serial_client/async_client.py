@@ -14,7 +14,7 @@ class AioSerialClient:
         self.baudrate: int = baudrate
         self.parity: Literal['N', 'E', 'O'] = parity
 
-    async def connect(self, port: str = '') -> bool:
+    def connect(self, port: str = '') -> bool:
         if hasattr(self, '_ser') and self._ser.is_open:
             return True
         if port:
