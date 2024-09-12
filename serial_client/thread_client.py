@@ -8,7 +8,7 @@ import serial.tools.list_ports
 from serial.tools.list_ports_common import ListPortInfo
 
 
-class SerialClient:
+class ThreadSerialClient:
     def __init__(self, port: str = '') -> None:
         self._ser: Serial
         self.connection_status: bool = False
