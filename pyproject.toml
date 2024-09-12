@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "serial-client"
+name = "serial_client"
 version = "0.1.0"
 description = ""
 authors = ["CrinitusFeles <crinitusfeles@gmail.com>"]
