@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from typing import Callable, Literal
-from aioserial import AioSerial
+from serial_client.aioserial import AioSerial
 import serial.tools.list_ports
+from serial import serialutil
 from serial.tools.list_ports_common import ListPortInfo
+from loguru import logger
 
 
 class AioSerialClient:
@@ -21,12 +23,16 @@ class AioSerialClient:
             self._port = port
         elif not self._port:
             raise RuntimeError('You need to set serial port!')
-        self._ser = AioSerial(self._port, self.baudrate,
-                              parity=self.parity,
-                              write_timeout=2,
-                              timeout=0.1)
-        self._ser.flush()
-        self.connection_status = self._ser.is_open
+        try:
+            self._ser = AioSerial(self._port, self.baudrate,
+                                parity=self.parity,
+                                write_timeout=2,
+                                timeout=0.1)
+            self._ser.flush()
+            self.connection_status = self._ser.is_open
+        except serialutil.SerialException as err:
+            logger.error(err)
+            return False
         return self.connection_status
 
     def disconnect(self) -> None:
