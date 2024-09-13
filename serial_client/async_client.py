@@ -51,8 +51,9 @@ class AioSerialClient:
         return rx_data
 
     async def transaction(self, data: bytes,
-                          validator: Callable[..., bool] | int) -> bytes:
-        return await self._ser.transaction(data, validator)
+                          validator: Callable[..., bool] | int,
+                          timeout: float = 0.2) -> bytes:
+        return await self._ser.transaction(data, validator, timeout)
 
 
     async def send(self, data: bytes) -> None:

@@ -156,11 +156,13 @@ class AioSerial(serial.Serial):
 
     async def transaction(
             self, data: Union[bytearray, bytes, memoryview],
-            validator: Callable[..., bool] | int) -> bytes:
+            validator: Callable[..., bool] | int,
+            timeout: float = 0.2) -> bytes:
         async with self._write_lock, self._read_lock:
             try:
                 return await asyncio.get_running_loop().run_in_executor(
-                    self._write_executor, self._transaction, data, validator)
+                    self._write_executor, self._transaction, data, validator,
+                    timeout)
             except asyncio.CancelledError:
                 await asyncio.shield(self._cancel_write_async())
                 raise
@@ -182,11 +184,12 @@ class AioSerial(serial.Serial):
         return rx_data
 
     def _transaction(self, data: Union[bytearray, bytes, memoryview],
-                    validator: Callable[..., bool] | int) -> bytes:
+                    validator: Callable[..., bool] | int,
+                    timeout: float = 0.2) -> bytes:
         self.write(data)
         if isinstance(validator, int):
             return self.read(validator)
-        self._wait_timeout(0.1)
+        self._wait_timeout(timeout)
         rx_data: bytes = self.read(self.in_waiting)
-        result: bytes = self._wait_validator(validator, rx_data, 0.1)
+        result: bytes = self._wait_validator(validator, rx_data, timeout)
         return result
