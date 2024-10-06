@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Literal
+from typing import Callable, Coroutine, Literal
 from serial_client.aioserial import AioSerial
 import serial.tools.list_ports
 from serial import serialutil
@@ -15,6 +15,8 @@ class AioSerialClient:
         self._port: str = port
         self.baudrate: int = baudrate
         self.parity: Literal['N', 'E', 'O'] = parity
+        self.on_transmited: Callable[[bytes], Coroutine] | None = None
+        self.on_received: Callable[[bytes], Coroutine] | None = None
 
     def connect(self, port: str = '') -> bool:
         if hasattr(self, '_ser') and self._ser.is_open:
@@ -43,21 +45,32 @@ class AioSerialClient:
 
     async def read(self, size: int) -> bytes:
         rx_data: bytes = await self._ser.read_async(size)
+        if self.on_received:
+            await self.on_received(rx_data)
         return rx_data
 
     async def read_all(self) -> bytes:
         self._ser._wait_timeout(0.1)
         rx_data: bytes = await self._ser.read_async(self._ser.in_waiting)
+        if self.on_received:
+            await self.on_received(rx_data)
         return rx_data
 
     async def transaction(self, data: bytes,
                           validator: Callable[..., bool] | int,
                           timeout: float = 0.2) -> bytes:
-        return await self._ser.transaction(data, validator, timeout)
+        answer: bytes = await self._ser.transaction(data, validator, timeout)
+        if self.on_transmited:
+            await self.on_transmited(data)
+        if self.on_received:
+            await self.on_received(answer)
+        return answer
 
 
     async def send(self, data: bytes) -> None:
         await self._ser.write_async(data)
+        if self.on_transmited:
+            await self.on_transmited(data)
 
 
 @dataclass
